@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Color Trading</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  <!-- Wallet section -->
+  <section class="card wallet">
+    <header class="wallet-head"><i class="fa-solid fa-wallet"></i><span>Wallet balance</span></header>
+    <div class="wallet-amt">₹<span id="wallet">0.00</span><i class="fa-solid fa-rotate"></i></div>
+    <div class="wallet-btns">
+      <button class="btn-solid" id="withdraw">Withdraw</button>
+      <button class="btn-outline" id="deposit">Deposit</button>
+    </div>
+  </section>
+
+  <!-- Announcement -->
+  <section class="card announce"><i class="fa-solid fa-bullhorn"></i>welcome to tiranga!</section>
+
+  <!-- Game Modes -->
+  <section class="card modes">
+    <button class="mode active"><span class="clock"></span>Win Go<br><small>1 Min</small></button>
+    <button class="mode"><span class="clock"></span>Win Go<br><small>3 Min</small></button>
+    <button class="mode"><span class="clock"></span>Win Go<br><small>5 Min</small></button>
+    <button class="mode"><span class="clock"></span>Win Go<br><small>10 Min</small></button>
+  </section>
+
+  <!-- Board -->
+  <section class="card board">
+    <div class="board-left">
+      <button class="how"><i class="fa-solid fa-question"></i> How to play</button>
+      <p class="board-title">Win Go 1 Min</p>
+      <div class="last-wrap">
+        <span class="coin orange">8</span>
+        <span class="coin green">r</span>
+        <span class="coin orange">6</span>
+        <span class="coin orange">4</span>
+        <span class="coin orange">4</span>
+      </div>
+    </div>
+    <div class="board-right">
+      <p class="time-label">Time remaining</p>
+      <div class="digit-wrap" id="timer">
+        <span>0</span><span>0</span><span>:</span><span>3</span><span>9</span>
+      </div>
+      <p class="game-id" id="gameId">20240318011208</p>
+    </div>
+  </section>
+
+  <!-- Color Tabs -->
+  <section class="tabs">
+    <button class="tab green">Green</button>
+    <button class="tab white">White</button>
+    <button class="tab orange">Orange</button>
+  </section>
+
+  <!-- Number Grid -->
+  <section class="numbers">
+    <button class="ball orange">0</button><button class="ball green">1</button><button class="ball orange">2</button><button class="ball green">3</button><button class="ball orange">4</button>
+    <button class="ball green">5</button><button class="ball orange">6</button><button class="ball green">7</button><button class="ball orange">8</button><button class="ball green">9</button>
+  </section>
+
+  <!-- Extras -->
+  <section class="extras">
+    <button class="btn-random">Random</button>
+    <div class="multi-wrap">
+      <button class="chip active">x1</button>
+      <button class="chip">x5</button>
+      <button class="chip">x10</button>
+      <button class="chip">x20</button>
+      <button class="chip">x50</button>
+      <button class="chip">x100</button>
+    </div>
+    <div class="bigsmall">
+      <button class="big active">Big</button>
+      <button class="small">Small</button>
+    </div>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html>
