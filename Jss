@@ -1,0 +1,291 @@
+/* ================== Config / Persistent Keys ================== */
+const LS_KEY_WALLET = 'cr_wallet_v1';
+const LS_KEY_HIST = 'cr_history_v1';
+const LS_KEY_PROMO = 'cr_promo_v1';
+
+/* ================ State ================ */
+let wallet = Number(localStorage.getItem(LS_KEY_WALLET) || 1000);
+let historyArr = JSON.parse(localStorage.getItem(LS_KEY_HIST) || '[]');
+let promoUsed = JSON.parse(localStorage.getItem(LS_KEY_PROMO) || '{}');
+
+let betAmt = 0, inRound = false, step = 0, crashStep = 0, multiplier = 1.0;
+const maxSteps = 12;
+
+/* ================ Elements ================ */
+const chips = [...document.querySelectorAll('.chip')];
+const betInput = document.getElementById('bet');
+const goBtn = document.getElementById('go');
+const cashBtn = document.getElementById('cash');
+const placeBtn = document.getElementById('place');
+const multEl = document.getElementById('mult');
+const statEl = document.getElementById('stat');
+const liveMult = document.getElementById('liveMult');
+const chickenEl = document.getElementById('chicken');
+const roundProg = document.getElementById('roundProg');
+const popupEl = document.getElementById('popup');
+const pt = document.getElementById('pt');
+const pm = document.getElementById('pm');
+const pc = document.getElementById('pc');
+const walletTop = document.getElementById('walletTop');
+const walletBottom = document.getElementById('walletBottom');
+
+const openHistory = document.getElementById('openHistory');
+const histWrap = document.getElementById('histWrap');
+const histTbl = document.querySelector('#histTbl tbody');
+const closeHist = document.getElementById('closeHist');
+const clearHist = document.getElementById('clearHist');
+
+const depWrap = document.getElementById('depWrap');
+const doDeposit = document.getElementById('doDeposit');
+const closeDep = document.getElementById('closeDep');
+const depAmt = document.getElementById('depAmt');
+
+const wdWrap = document.getElementById('wdWrap');
+const doWithdraw = document.getElementById('doWithdraw');
+const closeWd = document.getElementById('closeWd');
+const wdName = document.getElementById('wdName');
+const wdUpi = document.getElementById('wdUpi');
+const wdAmt = document.getElementById('wdAmt');
+
+const btnDeposit = document.getElementById('btnDeposit');
+const btnWithdraw = document.getElementById('btnWithdraw');
+const btnReset = document.getElementById('btnReset');
+
+const promoInp = document.getElementById('promo');
+const applyPromo = document.getElementById('applyPromo');
+
+const marq = document.getElementById('marq');
+
+/* ================= Init ================= */
+// auto-select first chip so Place Bet works easily
+const firstChip = chips[0];
+if(firstChip){ firstChip.classList.add('active'); betAmt = Number(firstChip.dataset.amt)||50; updateStatusText(); }
+
+updateWallet();
+fillHistory();
+setStatus('अपनी बेट चुनें');
+updateMultiplier(1.00);
+if (typeof randomLaneBubbles === 'function') randomLaneBubbles();
+
+/* =============== Helpers =============== */
+function nowStr(){ return new Date().toLocaleTimeString(); }
+function persistWallet(){ localStorage.setItem(LS_KEY_WALLET, wallet); updateWallet(); }
+function persistHistory(){ localStorage.setItem(LS_KEY_HIST, JSON.stringify(historyArr)); }
+function persistPromo(){ localStorage.setItem(LS_KEY_PROMO, JSON.stringify(promoUsed)); }
+
+function updateWallet(){
+  walletTop.textContent = wallet;
+  walletBottom.textContent = wallet;
+}
+
+function setStatus(txt){ statEl.textContent = txt; }
+function updateStatusText(){ setStatus('चुना: ₹' + (betAmt || 0)); }
+
+function updateMultiplier(m){
+  multiplier = m;
+  multEl.textContent = m.toFixed(2);
+  liveMult.textContent = m.toFixed(2) + 'x';
+}
+
+function pushHistory(obj){
+  historyArr.unshift(obj);
+  if(historyArr.length>200) historyArr.pop();
+  persistHistory();
+  fillHistory();
+}
+
+function fillHistory(){
+  histTbl.innerHTML = '';
+  for(const row of historyArr){
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${row.t}</td><td>₹${row.b}</td><td>x${(row.x||1).toFixed(2)}</td><td>${row.pl}</td>`;
+    histTbl.appendChild(tr);
+  }
+}
+
+/* =============== UI Handlers =============== */
+chips.forEach(c => c.addEventListener('click', () => {
+  chips.forEach(x => x.classList.remove('active'));
+  c.classList.add('active');
+  betInput.value = '';
+  betAmt = Number(c.dataset.amt);
+  updateStatusText();
+}));
+
+betInput.addEventListener('input', () => {
+  chips.forEach(x => x.classList.remove('active'));
+  betAmt = Math.floor(Number(betInput.value) || 0);
+  setStatus(betAmt ? ('चुना: ₹' + betAmt) : 'अपनी बेट चुनें');
+});
+
+pc.addEventListener('click', () => hideResultImmediately());
+openHistory.addEventListener('click', () => histWrap.classList.add('show'));
+closeHist.addEventListener('click', () => histWrap.classList.remove('show'));
+clearHist.addEventListener('click', () => { historyArr = []; persistHistory(); fillHistory(); });
+
+btnDeposit.addEventListener('click', () => depWrap.classList.add('show'));
+closeDep.addEventListener('click', () => depWrap.classList.remove('show'));
+doDeposit.addEventListener('click', () => {
+  const amt = Math.max(0, Math.floor(Number(depAmt.value) || 0));
+  if(!amt) return alert('राशि दर्ज करें');
+  wallet += amt; persistWallet(); depAmt.value=''; depWrap.classList.remove('show');
+  pushHistory({t: nowStr(), b: 0, x: 1.00, pl: `+₹${amt} (Deposit)`});
+});
+
+btnWithdraw.addEventListener('click', () => wdWrap.classList.add('show'));
+closeWd.addEventListener('click', () => wdWrap.classList.remove('show'));
+doWithdraw.addEventListener('click', () => {
+  const amt = Math.max(0, Math.floor(Number(wdAmt.value) || 0));
+  if(!wdName.value || !wdUpi.value || !amt) return alert('पूरा फॉर्म भरें');
+  if(amt > wallet) return alert('Wallet में पर्याप्त राशि नहीं');
+  wallet -= amt; persistWallet();
+  pushHistory({t: nowStr(), b: 0, x: 1.00, pl: `-₹${amt} (Withdraw)`});
+  wdName.value=''; wdUpi.value=''; wdAmt.value=''; wdWrap.classList.remove('show');
+});
+
+btnReset.addEventListener('click', () => {
+  if(confirm('सारा डेटा रीसेट करें?')) {
+    localStorage.removeItem(LS_KEY_WALLET); localStorage.removeItem(LS_KEY_HIST); localStorage.removeItem(LS_KEY_PROMO);
+    location.reload();
+  }
+});
+
+applyPromo.addEventListener('click', () => {
+  const code = (promoInp.value || '').trim().toUpperCase();
+  if(!code) return;
+  if(promoUsed[code]) return alert('यह प्रोमो पहले ही यूज़ हो चुका है');
+  if(code === 'YRF') {
+    wallet += 100; persistWallet(); promoUsed[code] = true; persistPromo();
+    alert('YRF बोनस ₹100 जोड़ दिया गया');
+    pushHistory({t: nowStr(), b: 0, x:1.00, pl: '+₹100 (Promo)'});
+  } else alert('अमान्य प्रोमो');
+  promoInp.value = '';
+});
+
+/* =============== Core: Manual-Go Round Engine =============== */
+
+/* small helper: random lane bubble text */
+function randomLaneBubbles(){
+  const texts = ['—','SAFE','+','BONUS'];
+  document.querySelectorAll('.bubble').forEach(b=>{
+    b.textContent = texts[Math.floor(Math.random()*texts.length)];
+  });
+}
+
+/* Round engine (simplified manual-advance) */
+function startRound(){
+  if(inRound) return;
+  if(!betAmt || betAmt <= 0) return alert('पहले बेट चुनें');
+  if(betAmt > wallet) return alert('Wallet में पर्याप्त राशि नहीं');
+  wallet -= betAmt; persistWallet();
+  inRound = true; step = 0;
+  crashStep = 2 + Math.floor(Math.random() * (maxSteps-2)); // random crash step
+  updateStatusText();
+  setStatus('Round started — अब GO दबाएँ');
+  updateMultiplier(1.00);
+  cashBtn.classList.remove('disabled');
+  goBtn.classList.remove('disabled');
+  placeBtn.classList.add('disabled');
+  // reset chicken pos
+  moveChickenTo(0);
+  randomLaneBubbles();
+}
+
+function advanceTick(){
+  if(!inRound) return;
+  step++;
+  const newMult = 1 + (step * 0.15) + (Math.random()*0.02);
+  updateMultiplier(newMult);
+  // move chicken visually (simple left shift)
+  moveChickenTo(Math.min(step, maxSteps));
+  // round progress bar width
+  const prog = Math.min(100, (step / maxSteps) * 100);
+  document.getElementById('roundProg').style.width = prog + '%';
+
+  // simulate coin/bonus on some steps
+  if(Math.random() < 0.14 && Math.random() > 0.3){
+    // bonus
+    const bonus = Math.max(1, Math.round(betAmt * 0.12));
+    wallet += bonus; persistWallet();
+    pushHistory({t: nowStr(), b: betAmt, x: newMult, pl: `+₹${bonus} (Bonus)`});
+    showResult('Bonus!', `₹${bonus}`);
+  }
+
+  // check crash
+  if(step >= crashStep){
+    // lost
+    inRound = false;
+    placeBtn.classList.remove('disabled');
+    goBtn.classList.add('disabled');
+    cashBtn.classList.add('disabled');
+    pushHistory({t: nowStr(), b: betAmt, x: newMult, pl: `-₹${betAmt}`});
+    showResult('You Crashed!', `-₹${betAmt}`);
+  }
+}
+
+function cashOut(){
+  if(!inRound) return;
+  const win = Math.round(betAmt * multiplier);
+  wallet += win; persistWallet();
+  inRound = false;
+  placeBtn.classList.remove('disabled');
+  goBtn.classList.add('disabled');
+  cashBtn.classList.add('disabled');
+  pushHistory({t: nowStr(), b: betAmt, x: multiplier, pl: `+₹${win}`});
+  showResult('You Cashed Out!', `₹${win}`);
+  betAmt = 0;
+}
+
+/* move chicken helper */
+function moveChickenTo(pos){
+  // pos 0..maxSteps -> map to left position inside stage
+  const stage = document.getElementById('stage');
+  const width = stage.getBoundingClientRect().width || 250;
+  // safe margins
+  const minLeft = 18;
+  const maxLeft = width - 110;
+  const pct = Math.min(1, pos / maxSteps);
+  const left = Math.round(minLeft + (maxLeft - minLeft) * pct);
+  chickenEl.style.left = left + 'px';
+}
+
+/* =========== RESULT POPUP: showResult auto-hides after 2 seconds =========== */
+let resultTimeout = null;
+function showResult(title, message){
+  // set text
+  pt.textContent = title;
+  pm.textContent = message;
+
+  // show popup (add .show)
+  popupEl.classList.add('show');
+
+  // clear previous timeout if any
+  if(resultTimeout) { clearTimeout(resultTimeout); resultTimeout = null; }
+
+  // auto-hide after 2 seconds (2000 ms)
+  resultTimeout = setTimeout(()=> {
+    popupEl.classList.remove('show');
+    resultTimeout = null;
+  }, 2000);
+}
+
+function hideResultImmediately(){
+  if(resultTimeout){ clearTimeout(resultTimeout); resultTimeout = null; }
+  popupEl.classList.remove('show');
+}
+
+/* ================ UI wiring for buttons ================ */
+placeBtn.addEventListener('click', () => {
+  if(inRound) return alert('Round already running');
+  if(betInput.value) betAmt = Math.floor(Number(betInput.value)||0);
+  startRound();
+});
+goBtn.addEventListener('click', () => {
+  if(!inRound) return;
+  advanceTick();
+});
+cashBtn.addEventListener('click', () => cashOut());
+
+/* small helpers for initial state */
+updateWallet();
+fillHistory();
