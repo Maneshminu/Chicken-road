@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Chicken Road — Manual Go (Demo)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="phone">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">🐣</div>
+        <div>
+          <div class="title">Chicken Road</div>
+          <div class="crumbs">Demo — Manual Go</div>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <div class="balance">₹<span id="walletTop">1000</span></div>
+        <div class="iconbtn" id="btnDeposit" title="Deposit">➕</div>
+        <div class="iconbtn" id="btnWithdraw" title="Withdraw">⬇</div>
+        <div class="iconbtn" id="btnReset" title="Reset">↺</div>
+      </div>
+    </div>
+
+    <div class="ticker">
+      <div class="dot"></div>
+      <div class="marquee"><span id="marq">Welcome • Demo Manual-Go Chicken Road</span></div>
+    </div>
+
+    <div class="main">
+      <div class="game">
+        <div class="stage" id="stage">
+          <div class="lanes">
+            <div class="lane"><div class="bubble" id="b0">—</div></div>
+            <div class="lane"><div class="bubble" id="b1">—</div></div>
+            <div class="lane"><div class="bubble" id="b2">—</div></div>
+          </div>
+
+          <div class="platform"></div>
+          <div class="ledge"></div>
+
+          <div class="live-mult" id="liveMult">1.00x</div>
+          <div class="chicken" id="chicken"><div class="emoji">🐔</div></div>
+
+          <div class="roundbar"><i id="roundProg"></i></div>
+        </div>
+
+        <div class="controls">
+          <div class="hud">
+            <div class="mult">x<span id="mult">1.00</span></div>
+            <div class="stat" id="stat">अपनी बेट चुनें</div>
+          </div>
+
+          <div class="chips" id="chips">
+            <div class="chip" data-amt="50">₹50</div>
+            <div class="chip" data-amt="200">₹200</div>
+            <div class="chip" data-amt="500">₹500</div>
+          </div>
+
+          <div class="betrow">
+            <div class="label">राशि</div>
+            <input id="bet" class="bet" type="number" placeholder="राशि (₹)" />
+          </div>
+
+          <div class="promo">
+            <input id="promo" placeholder="PROMO CODE (उदा: YRF)" />
+            <div class="apply" id="applyPromo">Apply</div>
+          </div>
+
+          <div class="actions">
+            <div class="btn cash disabled" id="cash">CASH OUT</div>
+            <div class="btn place" id="place">PLACE BET</div>
+            <div class="btn go disabled" id="go">GO (Advance)</div>
+          </div>
+
+          <div class="bottom">
+            <div class="wallet">Wallet: ₹<span id="walletBottom">1000</span></div>
+            <div class="history" id="openHistory">हिस्ट्री देखें</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="right">
+        <div class="sidebox">
+          <div><strong>QR (Demo)</strong></div>
+          <div class="qr" id="qrPreview">Click to preview QR</div>
+          <div style="margin-top:8px;color:#9fb0c0;font-size:13px">Sprite: Drag image into chicken (demo)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Win/Loss Popup -->
+  <div class="popup" id="popup">
+    <h2 id="pt">आप जीते!</h2>
+    <p id="pm">₹0</p>
+    <button class="close" id="pc">बंद करें</button>
+  </div>
+
+  <!-- History modal -->
+  <div class="backdrop" id="histWrap">
+    <div class="modal">
+      <h3>गेम हिस्ट्री</h3>
+      <div style="max-height:260px;overflow:auto">
+        <table id="histTbl"><thead><tr><th>समय</th><th>Bet</th><th>Cashout x</th><th>P/L</th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="btnline">
+        <div class="btnx" id="clearHist">क्लियर</div>
+        <div class="btnx" id="closeHist">बंद</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deposit modal -->
+  <div class="backdrop" id="depWrap">
+    <div class="modal">
+      <h3>Deposit (Demo QR)</h3>
+      <div style="background:#111a22;border-radius:10px;display:grid;place-items:center;padding:10px;margin-top:6px">
+        <div style="width:160px;height:160px;background:#fff;border-radius:8px;display:grid;place-items:center;color:#111;font-weight:900">QR</div>
+        <div style="font-size:12px;color:#9fb0c0;margin-top:6px">PhonePe / GPay / Paytm (डेमो)</div>
+      </div>
+      <div class="row"><input id="depAmt" type="number" placeholder="राशि (₹)"/></div>
+      <div class="btnline"><div class="btnx" id="doDeposit">Add Fund</div><div class="btnx" id="closeDep">बंद</div></div>
+    </div>
+  </div>
+
+  <!-- Withdraw modal -->
+  <div class="backdrop" id="wdWrap">
+    <div class="modal">
+      <h3>Withdraw (Demo)</h3>
+      <div class="row"><input id="wdName" placeholder="नाम"/><input id="wdUpi" placeholder="UPI ID"/></div>
+      <div class="row"><input id="wdAmt" type="number" placeholder="राशि (₹)"/></div>
+      <div class="btnline"><div class="btnx" id="doWithdraw">Request</div><div class="btnx" id="closeWd">बंद</div></div>
+      <div style="margin-top:6px;color:#9fb0c0;font-size:12px">नोट: यह डेमो है — रिक्वेस्ट लोकल हिस्ट्री में सेव होगी।</div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
